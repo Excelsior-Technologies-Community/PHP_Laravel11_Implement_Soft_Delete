@@ -1,59 +1,208 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🗑️ Laravel 11 – Soft Deletes & Restore Functionality  
+![Laravel](https://img.shields.io/badge/Laravel-11-orange)
+![PHP](https://img.shields.io/badge/PHP-8.2-blue)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)
+![MySQL](https://img.shields.io/badge/Database-MySQL-yellow)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This guide explains how to implement **Soft Deletes**, **Restore Records**, and **Status-based filtering** in a **Product CRUD application** using Laravel 11.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# ⭐ Overview  
+This project demonstrates:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Soft delete using Laravel’s built‑in `SoftDeletes` trait  
+- Status column (`active`, `deleted`)  
+- Hide deleted records from listing  
+- Full Product CRUD  
+- Single image upload  
+- Pagination, price sorting, and search  
+- Admin panel layout  
+- Laravel Breeze Authentication  
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+# 📦 Folder Structure  
+```
+project/
+│── app/
+│   ├── Models/Product.php
+│   └── Http/Controllers/ProductController.php
+│
+│── resources/views/products/
+│       ├── index.blade.php
+│       ├── create.blade.php
+│       └── edit.blade.php
+│
+│── database/migrations/
+│── public/images/
+│── routes/web.php
+│── README.md
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 🧱 Step 1 — Install Laravel 11  
+```
+composer create-project laravel/laravel example-app
+```
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 🛠 Step 2 — Configure Database  
+Edit `.env`:
+```
+DB_DATABASE=your_db
+DB_USERNAME=root
+DB_PASSWORD=root
+```
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 🧱 Step 3 — Create Products Table  
+```
+php artisan make:migration create_products_table --create=products
+```
+Columns include: name, details, price, size, color, category, image, timestamps.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 🧱 Step 4 — Add Status Column  
+To track soft-deleted records manually.
 
-## Code of Conduct
+```
+php artisan make:migration add_status_to_products_table --table=products
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Migration adds:
+```
+$table->string('status')->default('active');
+```
 
-## Security Vulnerabilities
+Run migration:
+```
+php artisan migrate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+# 🧠 Step 5 — Product Model with Soft Deletes  
+```php
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+class Product extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'name','details','image','size','color','category','price','status'
+    ];
+
+    protected $dates = ['deleted_at'];
+}
+```
+
+---
+
+# 🧠 Step 6 — ProductController Logic
+
+## ✔ Listing Products (Hide Deleted)
+```php
+$query = Product::where('status', '!=', 'deleted');
+```
+
+Supports:
+- Search  
+- Pagination  
+- Sort by price  
+
+---
+
+## ✔ Soft Delete a Record  
+```php
+public function destroy(Product $product)
+{
+    $product->update(['status' => 'deleted']);
+    $product->delete(); // Soft delete
+
+    return back()->with('success', 'Product deleted successfully.');
+}
+```
+
+---
+
+## ✔ Restore (If Needed)
+```
+Product::withTrashed()->find($id)->restore();
+```
+
+---
+
+# 🎨 Step 7 — Blade Files
+
+### `/products/index.blade.php`  
+Includes:
+- Search box  
+- Sorting dropdown  
+- Pagination  
+- Soft delete button  
+
+### `/products/create.blade.php`  
+Includes:
+- Product form  
+- Image upload  
+
+### `/products/edit.blade.php`  
+Includes:
+- Old + new image preview  
+- Update form  
+
+---
+
+# 🌐 Step 8 — Add Routes  
+```php
+Route::resource('products', ProductController::class);
+```
+
+---
+
+# 🔐 Step 9 — Admin Authentication (Laravel Breeze)
+
+```
+composer require laravel/breeze --dev
+php artisan breeze:install blade
+npm install && npm run dev
+php artisan migrate
+```
+
+Protect CRUD:
+```php
+Route::middleware(['auth'])->group(function () {
+    Route::resource('products', ProductController::class);
+});
+```
+
+Set login redirect:
+```
+public const HOME = '/products';
+```
+
+---
+
+# 🖼 Step 10 — Admin Layout  
+Includes Bootstrap + Navigation + Page container.
+
+---
+
+# ▶ Run Application  
+```
+php artisan serve
+```
+Visit:
+```
+http://localhost:8000/products
+```
+
+---<img width="676" height="163" alt="image" src="https://github.com/user-attachments/assets/637f3b4b-c20a-44c7-9872-a7f084a78d92" />
+<img width="676" height="111" alt="image" src="https://github.com/user-attachments/assets/8f6e3627-04d6-4386-89dc-37323602a4e6" />
+
