@@ -1,4 +1,5 @@
-# Laravel 11 – Soft Deletes & Restore Functionality  
+ Laravel 11 – Soft Deletes & Restore Functionality  
+ 
 ![Laravel](https://img.shields.io/badge/Laravel-11-orange)
 ![PHP](https://img.shields.io/badge/PHP-8.2-blue)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)
@@ -7,8 +8,7 @@
 This guide explains how to implement **Soft Deletes**, **Restore Records**, and **Status-based filtering** in a **Product CRUD application** using Laravel 11.
 
 ---
-
-# ⭐ Overview  
+ Overview  
 This project demonstrates:
 
 - Soft delete using Laravel’s built‑in `SoftDeletes` trait  
@@ -22,7 +22,7 @@ This project demonstrates:
 
 ---
 
-# 📦 Folder Structure  
+ Folder Structure  
 ```
 project/
 │── app/
@@ -42,14 +42,14 @@ project/
 
 ---
 
-# 🧱 Step 1 — Install Laravel 11  
+ Step 1 — Install Laravel 11  
 ```
 composer create-project laravel/laravel example-app
 ```
 
 ---
 
-# 🛠 Step 2 — Configure Database  
+ Step 2 — Configure Database  
 Edit `.env`:
 ```
 DB_DATABASE=your_db
@@ -59,7 +59,7 @@ DB_PASSWORD=root
 
 ---
 
-# 🧱 Step 3 — Create Products Table  
+ Step 3 — Create Products Table  
 ```
 php artisan make:migration create_products_table --create=products
 ```
@@ -67,7 +67,7 @@ Columns include: name, details, price, size, color, category, image, timestamps.
 
 ---
 
-# 🧱 Step 4 — Add Status Column  
+ Step 4 — Add Status Column  
 To track soft-deleted records manually.
 
 ```
@@ -86,7 +86,7 @@ php artisan migrate
 
 ---
 
-# 🧠 Step 5 — Product Model with Soft Deletes  
+ Step 5 — Product Model with Soft Deletes  
 ```php
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -104,9 +104,9 @@ class Product extends Model
 
 ---
 
-# 🧠 Step 6 — ProductController Logic
+ Step 6 — ProductController Logic
 
-## ✔ Listing Products (Hide Deleted)
+ Listing Products (Hide Deleted)
 ```php
 $query = Product::where('status', '!=', 'deleted');
 ```
@@ -118,7 +118,7 @@ Supports:
 
 ---
 
-## ✔ Soft Delete a Record  
+ Soft Delete a Record  
 ```php
 public function destroy(Product $product)
 {
@@ -131,42 +131,41 @@ public function destroy(Product $product)
 
 ---
 
-## ✔ Restore (If Needed)
+ Restore (If Needed)
 ```
 Product::withTrashed()->find($id)->restore();
 ```
 
 ---
 
-# 🎨 Step 7 — Blade Files
+ Step 7 — Blade Files
 
-### `/products/index.blade.php`  
+ `/products/index.blade.php`  
 Includes:
 - Search box  
 - Sorting dropdown  
 - Pagination  
 - Soft delete button  
 
-### `/products/create.blade.php`  
+`/products/create.blade.php`  
 Includes:
 - Product form  
 - Image upload  
 
-### `/products/edit.blade.php`  
+ `/products/edit.blade.php`  
 Includes:
 - Old + new image preview  
 - Update form  
 
 ---
-
-# 🌐 Step 8 — Add Routes  
+ Step 8 — Add Routes  
 ```php
 Route::resource('products', ProductController::class);
 ```
 
 ---
 
-# 🔐 Step 9 — Admin Authentication (Laravel Breeze)
+ Step 9 — Admin Authentication (Laravel Breeze)
 
 ```
 composer require laravel/breeze --dev
@@ -189,12 +188,12 @@ public const HOME = '/products';
 
 ---
 
-# 🖼 Step 10 — Admin Layout  
+ Step 10 — Admin Layout  
 Includes Bootstrap + Navigation + Page container.
 
 ---
 
-# ▶ Run Application  
+ Run Application  
 ```
 php artisan serve
 ```
