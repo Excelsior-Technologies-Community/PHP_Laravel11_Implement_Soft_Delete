@@ -1,4 +1,4 @@
-# 🗑️ Laravel 11 – Soft Deletes & Restore Functionality  
+# Laravel 11 – Soft Deletes & Restore Functionality  
 ![Laravel](https://img.shields.io/badge/Laravel-11-orange)
 ![PHP](https://img.shields.io/badge/PHP-8.2-blue)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)
